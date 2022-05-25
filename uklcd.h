@@ -6,12 +6,13 @@
  *
  */
 
+//TODO: Delete This Comment
 #ifndef UKLCD_H_
 #define UKLCD_H_
 
 // User Functions
 void initLCD(); // Boots up and prepares LCD
-void writedata(unsigned int data, int operation); // Write Char to Line
+void writedata(unsigned int data, int operation); // Write Char at cursor
 void clearLCD(); // Clears Screen
 void cursorOn(); // Shows Cursor
 void cursorOff(); // Hides Cursor
@@ -23,9 +24,8 @@ void scrollLeft(); // Scrolls Line 1-Char Left Lines are scrolled together
 void scrollRight(); // Scrolls Line 1-Char Right Lines are scrolled together
 
 // Header Functions
-void sendlcdata(int data, int I3, int I4); // Write Data to SN74HC
+void sendlcddata(int data, int I3, int I4); // Write Data to SN74HC
 void pulseLCD(int operation,unsigned int data); // Pulse LCD to Register Data
-
 
 // User Function Code Below
 void initLCD() { // Initialise LCD According to Hitachi HD44780 Datasheet
@@ -144,9 +144,9 @@ void cursorDown() { // CursorUP Not Available / Return to home and resposition
     __delay_cycles(45); // All Cursor Shifts Take 40us
 }
 
-// ST7066 LCD Controller Holds 40 Chars per line Switches to next line on 41st Char
+// ST7066 LCD Controller Holds 40 Chars per line - Switches to next line on 41st Char
 // Can Scroll Left Or Right To display out of screen chars
-// Both Lines Scroll Together
+// Lines Scroll Together
 void scrollLeft () { // Scrolls 1 Char Left
     writedata(0x0018, 0);
     __delay_cycles(45); // All Scroll Shifts Take 40us
@@ -166,12 +166,12 @@ void pulseLCD(int operation,unsigned int data){ // Pulse LCD for 12-Cycles to Re
     __delay_cycles(2);
 }
 
-// SN74HC To ST7066 Wiring of UsluKukla
+// Launchpad -> SN74HC -> ST7066 Wiring
 //
 //             IC102                      IC104
 //            +------------+             +------------+
-//            |            |             |            |     * 0's are Written Into IC102 and QA/QB of IC104
-//        P2.0|SER       QA|      *------|SER       QA|     * to place the data and command bits onto correct register pins
+//            |            |             |            |     * 0's are Written Into all bits of IC102 and QA/QB of IC104
+//        P2.0|SER       QA|      *----->|SER       QA|     * to place the data and command bits onto correct register pins
 //        P2.3|SRCLK     QB|      |  P2.3|SRCLK     QB|
 //        P2.4|RCLK      QC|      |  P2.4|RCLK      QC|I3 <-- Mode Select Pin - 1 = Data Input / 0 = Command Input
 //            |          QD|      |      |          QD|I4 <-- R/W Pin - 1 = Read From LCD / 0 = Read LCD
@@ -189,7 +189,7 @@ void sendlcddata(int data, int I3, int I4){ // Writes into SN74HC
     int i=0;
     volatile unsigned int tmp=0;
 
-    for(i=0;i<4;i++){ // Prepare Data to be written into SN74HC
+    for(i=0;i<4;i++){ // Write Data into IC102
         tmp=temp << 3-i;
         tmp=tmp&data;
         tmp=tmp >> 3-i;
@@ -217,7 +217,7 @@ void sendlcddata(int data, int I3, int I4){ // Writes into SN74HC
     P2OUT=I3;    //SCK is off
     __delay_cycles(1);
 
-    // Add 0 to fill 8-Bits
+    // Add 0 to fill 7th Bit
     P2OUT=0;
     __delay_cycles(1);
     P2OUT=sck;    //SCK is on
@@ -225,7 +225,7 @@ void sendlcddata(int data, int I3, int I4){ // Writes into SN74HC
     P2OUT=0;    //SCK is off
     __delay_cycles(1);
 
-    // Add 0 to fill 8-Bits
+    // Add 0 to fill 8th Bit
     P2OUT=0;
     __delay_cycles(1);
     P2OUT=sck;    //SCK is on
