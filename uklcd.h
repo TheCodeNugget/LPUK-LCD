@@ -28,7 +28,7 @@ void sendlcddata(int data, int I3, int I4); // Write Data to SN74HC
 void pulseLCD(int operation,unsigned int data); // Pulse LCD to Register Data
 
 // User Function Code Below
-void initLCD() { // Initialise LCD According to Hitachi HD44780 Datasheet
+void initLCD() { // Initialise LCD According to Sitronix ST7066U
 
     volatile unsigned int ptr;
     volatile unsigned int tmp;
@@ -139,7 +139,7 @@ void cursorRight() {
     __delay_cycles(45); // All Cursor Shifts Take 40us
 }
 
-void cursorDown() { // CursorUP Not Available / Return to home and resposition
+void cursorDown() { // CursorUp Not Available / Return to home and reposition
     writedata(0x00C0, 0);
     __delay_cycles(45); // All Cursor Shifts Take 40us
 }
@@ -166,19 +166,19 @@ void pulseLCD(int operation,unsigned int data){ // Pulse LCD for 12-Cycles to Re
     __delay_cycles(2);
 }
 
-// Launchpad -> SN74HC -> ST7066 Wiring
+// Launchpad ==> SN74HC -> ST7066 Wiring
 //
 //             IC102                      IC104
 //            +------------+             +------------+
 //            |            |             |            |     * 0's are Written Into all bits of IC102 and QA/QB of IC104
 //        P2.0|SER       QA|      *----->|SER       QA|     * to place the data and command bits onto correct register pins
 //        P2.3|SRCLK     QB|      |  P2.3|SRCLK     QB|
-//        P2.4|RCLK      QC|      |  P2.4|RCLK      QC|I3 <-- Mode Select Pin - 1 = Data Input / 0 = Command Input
-//            |          QD|      |      |          QD|I4 <-- R/W Pin - 1 = Read From LCD / 0 = Read LCD
-//            |          QE|      |      |          QE|D4 <-- Data Bus 4
-//            |          QG|      |      |          QF|D5 <-- Data Bus 5
-//            |          QF|      |      |          QG|D6 <-- Data Bus 6
-//            |          QH|      |      |          QH|D7 <-- Data Bus 7
+//        P2.4|RCLK      QC|      |  P2.4|RCLK      QC|I3 <== Mode Select Pin - 1 = Data Input / 0 = Command Input
+//            |          QD|      |      |          QD|I4 <== R/W Pin - 1 = Read From LCD / 0 = Read LCD
+//            |          QE|      |      |          QE|D4 <== Data Bus 4
+//            |          QG|      |      |          QF|D5 <== Data Bus 5
+//            |          QF|      |      |          QG|D6 <== Data Bus 6
+//            |          QH|      |      |          QH|D7 <== Data Bus 7
 //            |         QH'|------*      |         QH'|
 //            +------------+             +------------+
 //             TI-SN74HC                  TI-SN74HC

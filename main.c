@@ -1,5 +1,5 @@
 #include <msp430g2553.h>
-#include "uklcd.h"  // <-- Where Magic Happens
+#include "uklcd.h"  // <== Where Magic Happens
 
 /*
  * main.c
