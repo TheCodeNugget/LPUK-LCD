@@ -1,5 +1,7 @@
 #include <msp430g2553.h>
+#include <stdio.h> // <== Required for sprintf
 #include "uklcd.h"  // <== Where Magic Happens
+
 
 /*
  * main.c
@@ -13,18 +15,19 @@ int main(void) { // TODO: Delete This Comment
     WDTCTL = WDTPW | WDTHOLD;                 // Stop watchdog timer
     P2DIR |= BIT0 + BIT3 + BIT4;              // Set P2.0(SER), P2.3(SCK) P2.4(RCK) to output direction
 
-    volatile unsigned int ptr=0;
+    char buffer[40]; //single line buffer to fit ST7076 Line Capacity
+
+    volatile unsigned int ptr=0, charnum;
 
     initLCD();
 
-    int k;
-    char line1[10]= "PEM - 1175";
-    for(k=0;k<sizeof(line1);k++) writedata(line1[k],1);
+    int k, lecCode = 1175, term = 2022;
+    charnum = sprintf(buffer,"PEM - %d", lecCode); //Writes formatted String to given Char Array returns, string length Arguments(Char[], String, int) Important!: Limited to int
+    for(k=0;k<charnum;k++) writedata(buffer[k],1);
     cursorDown();
-    char line2[13]= "Spring - 2022";
-    for(k=0;k<sizeof(line2);k++) writedata(line2[k],1);
+    charnum = sprintf(buffer,"Spring - %d", term);
+    for(k=0;k<charnum;k++) writedata(buffer[k],1);
     cursorOff();
 
     return 0;
 }
-
