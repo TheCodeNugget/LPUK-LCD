@@ -22,8 +22,8 @@ int main(void) { // TODO: Delete This Comment
     initLCD();
 
     int k, lecCode = 1175, term = 2022;
-    charnum = sprintf(buffer,"PEM - %d", lecCode); //Writes formatted String to given Char Array returns, string length Arguments(Char[], String, int) Important!: Limited to int
-    for(k=0;k<charnum;k++) writedata(buffer[k],1);
+    charnum = sprintf(buffer,"PEM - %d", lecCode); //Writes formatted String to given Char Array, returns string length, Arguments(Char[], String, int) Important!: Limited to int
+    for(k=0;k<charnum;k++) writedata(buffer[k],1); //Writes Array to lcd using length returned from sprintf
     cursorDown();
     charnum = sprintf(buffer,"Spring - %d", term);
     for(k=0;k<charnum;k++) writedata(buffer[k],1);
