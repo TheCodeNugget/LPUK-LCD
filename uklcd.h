@@ -1,5 +1,5 @@
 /*
- * uklcd.h - Basic Header For using Sitronix ST7066 LCD Controller on UsluKukla Booster V3.2 for TI MSP430 Launchpad
+ * uklcd.h - Basic Header For using Hitachi HD44780 LCD Controller from UsluKukla Booster V3.2 for TI MSP430 Launchpad
  *
  *  Created on: 25 May 2022
  *      Author: Ken The Nugget / Kyilmaz18
@@ -144,7 +144,7 @@ void cursorDown() { // CursorUp Not Available / Return to home and reposition
     __delay_cycles(45); // All Cursor Shifts Take 40us
 }
 
-// ST7066 LCD Controller Holds 40 Chars per line - Switches to next line on 41st Char
+// HD44780 LCD Controller Holds 40 Chars per line - Switches to next line on 41st Char
 // Can Scroll Left Or Right To display out of screen chars
 // Lines Scroll Together
 void scrollLeft () { // Scrolls 1 Char Left
@@ -166,85 +166,69 @@ void pulseLCD(int operation,unsigned int data){ // Pulse LCD for 12-Cycles to Re
     __delay_cycles(2);
 }
 
-// Launchpad ==> SN74HC -> ST7066 Wiring
+// Launchpad ==> SN74HC -> HD44780 Wiring
 //
-//             IC102                      IC104
-//            +------------+             +------------+
-//            |            |             |            |     * 0's are Written Into all bits of IC102 and QA/QB of IC104
-//        P2.0|SER       QA|      *----->|SER       QA|     * to place the data and command bits onto correct register pins
-//        P2.3|SRCLK     QB|      |  P2.3|SRCLK     QB|
-//        P2.4|RCLK      QC|      |  P2.4|RCLK      QC|I3 <== Mode Select Pin - 1 = Data Input / 0 = Command Input
-//            |          QD|      |      |          QD|I4 <== R/W Pin - 1 = Read From LCD / 0 = Read LCD
-//            |          QE|      |      |          QE|D4 <== Data Bus 4
-//            |          QG|      |      |          QF|D5 <== Data Bus 5
-//            |          QF|      |      |          QG|D6 <== Data Bus 6
-//            |          QH|      |      |          QH|D7 <== Data Bus 7
-//            |         QH'|------*      |         QH'|
-//            +------------+             +------------+
-//             TI-SN74HC                  TI-SN74HC
+//             IC102                       IC104
+//            +------------+              +------------+
+//            |            |              |            |     * 0's are Written Into all bits of IC102 and QA/QB of IC104
+//        P2.0|SER       QA|      *------>|SER       QA|     * to place the data and command bits onto correct register pins
+//        P2.3|SRCLK     QB|      |   P2.3|SRCLK     QB|
+//        P2.4|RCLK      QC|      |   P2.4|RCLK      QC|I3 <== Mode Select Pin - 1 = Data Input / 0 = Command Input
+//            |          QD|      |       |          QD|I4 <== R/W Pin - 1 = Read From LCD / 0 = Read LCD
+//            |          QE|      |       |          QE|D4 <== Data Bus 4
+//            |          QG|      |       |          QF|D5 <== Data Bus 5
+//            |          QF|      |       |          QG|D6 <== Data Bus 6
+//            |          QH|      |       |          QH|D7 <== Data Bus 7
+//            |         QH'|------*       |         QH'|
+//            +------------+              +------------+
+//             TI-SN74HC595                TI-SN74HC595
 
 void sendlcddata(int data, int I3, int I4){ // Writes into SN74HC
-    volatile unsigned int sck=8;//0x0008;    //SCK is on
+    volatile unsigned int sck=8;//0x0008;    //Pulse SCK to shift
     volatile unsigned int temp=1;//0x0001;
     int i=0;
     volatile unsigned int tmp=0;
 
-    for(i=0;i<4;i++){ // Write Data into IC102
+    for(i=0;i<4;i++){ // Write Data into IC102  TODO: Make this count down
         tmp=temp << 3-i;
         tmp=tmp&data;
         tmp=tmp >> 3-i;
         P2OUT=tmp;
         __delay_cycles(1);
-        P2OUT=sck|tmp;    //SCK is on
+        P2OUT=sck|tmp;    //Pulse SCK to shift
         __delay_cycles(1);
-        P2OUT=tmp;    //SCK is off
+        P2OUT=tmp;
         __delay_cycles(1);
     }
 
     // ADD I4 Command to the end of Data Message
     P2OUT=I4;
     __delay_cycles(1);
-    P2OUT=sck|I4;    //SCK is on
+    P2OUT=sck|I4;    //Pulse SCK to shift
     __delay_cycles(1);
-    P2OUT=I4;    //SCK is off
+    P2OUT=I4;
     __delay_cycles(1);
 
     // ADD I3 Command to the end of Data Message
     P2OUT=I3;
     __delay_cycles(1);
-    P2OUT=sck|I3;    //SCK is on
+    P2OUT=sck|I3;    //Pulse SCK to shift
     __delay_cycles(1);
-    P2OUT=I3;    //SCK is off
-    __delay_cycles(1);
-
-    // Add 0 to fill 7th Bit
-    P2OUT=0;
-    __delay_cycles(1);
-    P2OUT=sck;    //SCK is on
-    __delay_cycles(1);
-    P2OUT=0;    //SCK is off
+    P2OUT=I3;
     __delay_cycles(1);
 
-    // Add 0 to fill 8th Bit
-    P2OUT=0;
-    __delay_cycles(1);
-    P2OUT=sck;    //SCK is on
-    __delay_cycles(1);
-    P2OUT=0;    //SCK is off
-    __delay_cycles(1);
-
-    for(i=0;i<8;i++){ // Sends 1-Byte of 0's to fill up 1st SN74 -> Pushes Message to Second Register
+    for(i=10;i>0;i--){ // Shifts SN74s by 10-Bits, Data is on pins QC-QH of IC104
         P2OUT=0;
         __delay_cycles(1);
-        P2OUT=sck;    //SCK is on
+        P2OUT=sck;    //Pulse SCK to shift
         __delay_cycles(1);
-        P2OUT=0;    //SCK is off
+        P2OUT=0;
         __delay_cycles(1);
     }
 
-    P2OUT=0b00010000;  //RCK is on -> Transmits Registered Data
+    P2OUT=0b00010000;  //Pulse RCK pin, SN74 Latches on to transmit data
     __delay_cycles(1);
-    P2OUT=0;    //RCK is off -> Transmit Complete
+    P2OUT=0;
     __delay_cycles(1);
 }
 
